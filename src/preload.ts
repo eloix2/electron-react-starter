@@ -1,17 +1,16 @@
-import renderer = require("electron/renderer");
+import { contextBridge, ipcRenderer } from "electron";
 
-declare global {
-  interface Window {
-    versions: {
-      node: () => string;
-      chrome: () => string;
-      electron: () => string;
-    };
-  }
-}
-
-renderer.contextBridge.exposeInMainWorld("versions", {
+contextBridge.exposeInMainWorld("versions", {
   node: () => process.versions.node,
   chrome: () => process.versions.chrome,
   electron: () => process.versions.electron,
+});
+
+contextBridge.exposeInMainWorld("electronAPI", {
+  setTitle: (title: string) => ipcRenderer.send("set-title", title),
+  openFile: () => ipcRenderer.invoke("dialog:openFile"),
+  onUpdateCounter: (callback: (value: number) => void) =>
+    ipcRenderer.on("update-counter", (_event, value: number) =>
+      callback(value),
+    ),
 });
