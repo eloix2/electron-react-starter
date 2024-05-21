@@ -1,5 +1,6 @@
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import AnimeList from "./components/animeList";
+import AnimeFilters from "./components/animeFilters";
 
 function App() {
   const [counter, setCounter] = useState(0);
@@ -8,46 +9,38 @@ function App() {
     setCounter(counter + value);
   });
 
+  const setLightTheme = () => {
+    document.documentElement.classList.remove("dark");
+    localStorage.setItem("theme", "light");
+  };
+
+  const setDarkTheme = () => {
+    document.documentElement.classList.add("dark");
+    localStorage.setItem("theme", "dark");
+  };
+
+  window.electronAPI.onToggleLightMode(() => {
+    setLightTheme();
+  });
+
+  window.electronAPI.onToggleDarkMode(() => {
+    setDarkTheme();
+  });
+
+  useEffect(() => {
+    const theme = localStorage.getItem("theme");
+    if (theme === "dark") {
+      setDarkTheme();
+    } else {
+      setLightTheme();
+    }
+  }, []);
+
   return (
-    <div className="flex h-full w-full flex-col place-content-center place-items-center gap-8 p-8 text-center">
-      <p className="text-4xl font-bold underline">Electron React Starter</p>
-      <div>
-        Chrome (v{window.versions.chrome()}), Node.js (v
-        {window.versions.node()}
-        ), and Electron (v{window.versions.electron()})
-      </div>
-      <div className="flex w-full max-w-2xl flex-col gap-4 rounded-lg border border-zinc-200 p-4">
-        <span className="text-xl font-bold">IPC</span>
-        <Button
-          onClick={() => {
-            window.electronAPI.setTitle(
-              "The title was last updated at " +
-                new Intl.DateTimeFormat("en-GB", {
-                  dateStyle: "full",
-                  timeStyle: "long",
-                }).format(Date.now()),
-            );
-          }}
-        >
-          Set title (renderer to main(one-way))
-        </Button>
-        <Button
-          onClick={async () => {
-            const filePath = await window.electronAPI.openFile();
-            if (filePath) {
-              alert("The file that you selected is:\n\n" + filePath);
-            }
-          }}
-        >
-          Get filepath (renderer to main (two-way))
-        </Button>
-        <div>
-          Go to the top left menu bar to update counter! (main to renderer)
-        </div>
-        <div>
-          Current value:<strong>{counter}</strong>
-        </div>
-      </div>
+    <div className="flex h-full w-full flex-col items-center bg-white p-8 dark:bg-gray-900">
+      <h1 className="mb-4 text-4xl font-bold text-black">Anime List</h1>
+      <AnimeFilters />
+      <AnimeList />
     </div>
   );
 }

@@ -8,6 +8,8 @@ export interface IElectronAPI {
   setTitle: (title: string) => void;
   openFile: () => Promise<string>;
   onUpdateCounter: (callback: (value: number) => void) => void;
+  onToggleLightMode: (callback: () => void) => void;
+  onToggleDarkMode: (callback: () => void) => void;
 }
 
 declare global {

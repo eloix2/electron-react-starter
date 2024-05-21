@@ -1,6 +1,10 @@
 import { app, BrowserWindow, ipcMain, dialog, Menu } from "electron";
 import { IpcMainEvent } from "electron/main";
 import path from "path";
+import Store from 'electron-store';
+
+const store = new Store();
+let isDarkMode = store.get('isDarkMode', false);
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require("electron-squirrel-startup")) {
@@ -23,8 +27,8 @@ async function handleFileOpen() {
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1800,
+    height: 1600,
     webPreferences: {
       nodeIntegration: true,
       preload: path.join(__dirname, "preload.js"),
@@ -45,6 +49,31 @@ const createWindow = () => {
         },
       ],
     },
+    {
+      label: 'Theme',
+      submenu: [
+        {
+          label: 'Toggle Light Mode',
+          click: () => {
+            isDarkMode = false;
+            store.set('isDarkMode', isDarkMode); // Guarda el estado del tema en el almacenamiento persistente
+            mainWindow.webContents.send("toggle-light-mode");
+          },
+          type: 'radio',
+          checked: !(isDarkMode as boolean)
+        },
+        {
+          label: 'Toggle Dark Mode',
+          click: () => {
+            isDarkMode = true;
+            store.set('isDarkMode', isDarkMode); // Guarda el estado del tema en el almacenamiento persistente
+            mainWindow.webContents.send("toggle-dark-mode");
+          },
+          type: 'radio',
+          checked: isDarkMode as boolean
+        }
+      ]
+    }
   ]);
   Menu.setApplicationMenu(menu);
 
@@ -64,6 +93,7 @@ const createWindow = () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  store.get('isDarkMode', false); // Recupera el estado del tema del almacenamiento persistente (si existe
   ipcMain.on("set-title", handleSetTitle);
   ipcMain.handle("dialog:openFile", handleFileOpen);
   ipcMain.handle("ping", () => "pong");
